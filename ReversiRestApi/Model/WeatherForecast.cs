@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ReversiRestApi
+namespace ReversiRestApi.Model
 {
     public class WeatherForecast
     {
