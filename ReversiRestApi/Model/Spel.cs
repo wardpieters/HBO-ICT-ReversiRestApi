@@ -64,10 +64,8 @@ namespace ReversiRestApi.Model
         }
 
 
-        public bool Afgelopen()     // return true als geen van de spelers een zet kan doen
-        {
-            throw new NotImplementedException();    // todo!
-        }
+        public bool Afgelopen() => !IsErEenZetMogelijk(Kleur.Wit) && !IsErEenZetMogelijk(Kleur.Zwart);
+
 
         public Kleur OverwegendeKleur()
         {
@@ -99,7 +97,19 @@ namespace ReversiRestApi.Model
 
         public void DoeZet(int rijZet, int kolomZet)
         {
-            throw new NotImplementedException();    // todo: maak hierbij gebruik van de reeds in deze klassen opgenomen methoden!
+            if (!ZetMogelijk(rijZet, kolomZet))
+            {
+                throw new Exception($"Zet ({rijZet},{kolomZet}) is niet mogelijk!");
+            }
+
+            for (var i = 0; i < 8; i++)
+            {
+                DraaiStenenVanTegenstanderInOpgegevenRichtingOmIndienIngesloten(rijZet, kolomZet, AandeBeurt,
+                    richting[i, 0], richting[i, 1]);
+            }
+
+            Bord[rijZet, kolomZet] = AandeBeurt;
+            WisselBeurt();
         }
 
         private static Kleur GetKleurTegenstander(Kleur kleur)
