@@ -39,8 +39,12 @@ namespace ReversiRestApi.Repository
 
         public Spel GetSpel(string spelToken)
         {
-            return Spellen.Where(x => x.Speler1Token == spelToken || x.Speler2Token == spelToken).FirstOrDefault();
+            return Spellen.Where(x => x.Token == spelToken).FirstOrDefault();
+        }
+
+        public Spel GetSpelByPlayerToken(string playerToken)
+        {
+            return Spellen.Where(x => x.Speler1Token == playerToken || x.Speler2Token == playerToken).FirstOrDefault();
         }
     }
-
 }

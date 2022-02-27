@@ -12,8 +12,6 @@ namespace NUnitTestProjectReversiSpel
         public void GetSpelOmschrijvingenVanSpellenMetWachtendeSpeler_Return_Games()
         {
             SpelController controller = new();
-
-
         }
     }
 }

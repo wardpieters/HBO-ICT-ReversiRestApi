@@ -11,6 +11,6 @@ namespace ReversiRestApi.Repository
 
         Spel GetSpel(string spelToken);
 
-        // ...
+        Spel GetSpelByPlayerToken(string playerToken);
     }
 }

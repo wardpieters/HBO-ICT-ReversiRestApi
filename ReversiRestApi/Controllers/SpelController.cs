@@ -14,10 +14,7 @@ namespace ReversiRestApi.Controllers
     public class SpelController : ControllerBase
     {
         private readonly ISpelRepository spelRepository;
-        public SpelController(ISpelRepository repository)
-        {
-            spelRepository = repository;
-        }
+        public SpelController(ISpelRepository repository) => spelRepository = repository;
 
         // GET api/spel
         [HttpGet]
@@ -26,6 +23,34 @@ namespace ReversiRestApi.Controllers
             IEnumerable<string> games = spelRepository.GetSpellen().Where(x => String.IsNullOrWhiteSpace(x.Speler2Token)).Select(x => x.Omschrijving);
 
             return Ok(games);
+        }
+
+        // GET api/spel
+        [HttpGet("{token}")]
+        public ActionResult<Spel> GetGame(string token)
+        {
+            var game = spelRepository.GetSpel(token);
+
+            if (game == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(game);
+        }
+
+        // GET api/spel/player-token/
+        [HttpGet("player-token/{token}")]
+        public ActionResult<Spel> GetGameByPlayerToken(string token)
+        {
+            var game = spelRepository.GetSpelByPlayerToken(token);
+
+            if (game == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(game);
         }
 
         [HttpPost]
@@ -41,3 +66,4 @@ namespace ReversiRestApi.Controllers
         }
     }
 }
+  

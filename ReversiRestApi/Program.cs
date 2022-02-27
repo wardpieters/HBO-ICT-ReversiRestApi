@@ -20,7 +20,6 @@ namespace ReversiRestApi
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => {webBuilder.UseStartup<Startup>();})
-                .ConfigureServices(services => {services.AddScoped<ISpelRepository, SpelRepository>();});
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }
