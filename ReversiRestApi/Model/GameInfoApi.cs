@@ -2,11 +2,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace ReversiRestApi.Controllers
+namespace ReversiRestApi.Model
 {
     public class GameInfoApi
     {
-        public string token;
-        public string description;
+        public string Player1Token;
+        public string Description;
     }
 }

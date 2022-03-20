@@ -33,13 +33,13 @@ namespace ReversiRestApi.Migrations
                     b.Property<string>("Bord")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Omschrijving")
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Speler1Token")
+                    b.Property<string>("Player1Token")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Speler2Token")
+                    b.Property<string>("Player2Token")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Token")

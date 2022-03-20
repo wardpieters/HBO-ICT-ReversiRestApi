@@ -1,7 +1,6 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ReversiRestApi.Model;
@@ -9,27 +8,27 @@ using ReversiRestApi.Repository;
 
 namespace ReversiRestApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/game")]
     [ApiController]
     public class SpelController : ControllerBase
     {
-        private readonly ISpelRepository spelRepository;
-        public SpelController(ISpelRepository repository) => spelRepository = repository;
+        private readonly ISpelRepository _spelRepository;
+        public SpelController(ISpelRepository repository) => _spelRepository = repository;
 
         // GET api/spel
         [HttpGet]
-        public ActionResult<IEnumerable<string>> GetSpelOmschrijvingenVanSpellenMetWachtendeSpeler()
+        public ActionResult<IEnumerable<object>> GetSpelDescriptionenVanSpellenMetWachtendeSpeler()
         {
-            IEnumerable<string> games = spelRepository.GetSpellen().Where(x => String.IsNullOrWhiteSpace(x.Speler2Token)).Select(x => x.Omschrijving);
-
-            return Ok(games);
+            return _spelRepository.GetSpellen()
+                .Where(s => string.IsNullOrEmpty(s.Player2Token))
+                .Select(s => new {s.Description, s.Token, s.Player1Token, s.Player2Token}).ToList();
         }
 
         // GET api/spel
         [HttpGet("{token}")]
         public ActionResult<Spel> GetGame(string token)
         {
-            var game = spelRepository.GetSpel(token);
+            var game = _spelRepository.GetSpel(token);
 
             if (game == null)
             {
@@ -43,7 +42,7 @@ namespace ReversiRestApi.Controllers
         [HttpGet("player-token/{token}")]
         public ActionResult<Spel> GetGameByPlayerToken(string token)
         {
-            var game = spelRepository.GetSpelByPlayerToken(token);
+            var game = _spelRepository.GetSpelByPlayerToken(token);
 
             if (game == null)
             {
@@ -57,12 +56,58 @@ namespace ReversiRestApi.Controllers
         public ActionResult CreateGame([BindRequired, FromBody] GameInfoApi gameInfo)
         {
             Spel spel = new Spel();
-            spel.Speler1Token = gameInfo.token;
-            spel.Omschrijving = gameInfo.description;
+            spel.Player1Token = gameInfo.Player1Token;
+            spel.Description = gameInfo.Description;
 
-            spelRepository.AddSpel(spel);
+            _spelRepository.AddSpel(spel);
 
             return Created(spel.Token, spel);
+        }
+        
+        [HttpPut("{token}/join")]
+        public ActionResult<Spel> JoinGame(string token, [FromBody] string playerToken)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(playerToken)) 
+                return BadRequest("Missing fields");
+
+            Spel game = _spelRepository.GetSpel(token);
+
+            if (game == null) return NotFound("Game not found");
+
+            if (!game.HasPlayer(playerToken) && _spelRepository.IsInGame(playerToken))
+                return BadRequest("Already in game");
+
+            if (!game.HasPlayer(playerToken))
+            {
+                game.Player1Token = playerToken;
+                _spelRepository.Save();   
+            }
+
+            return Ok(game);
+        }
+        
+        [HttpPut("{token}/leave")]
+        public ActionResult<Spel> LeaveGame(string token, [FromBody] string playerToken)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(playerToken))
+            {
+                return BadRequest("Fields missing");
+            }
+            
+            Spel spel = _spelRepository.GetSpel(token);
+            
+            if (!spel.HasPlayer(playerToken))
+            {
+                return BadRequest("Not in game");
+            }
+
+            if (spel.Player1Token.Equals(playerToken)) 
+                spel.Player1Token = spel.Player2Token;
+
+            spel.Player2Token = null;
+            _spelRepository.Save();
+
+            return Ok(spel);
         }
     }
 }

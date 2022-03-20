@@ -12,10 +12,10 @@ namespace ReversiRestApi.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Omschrijving = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Speler1Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Speler2Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Player1Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Player2Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Bord = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AandeBeurt = table.Column<int>(type: "int", nullable: false)
                 },

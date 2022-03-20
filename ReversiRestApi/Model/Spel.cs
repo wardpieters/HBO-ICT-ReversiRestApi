@@ -22,10 +22,10 @@ namespace ReversiRestApi.Model
 
         [Key]
         public int ID { get; set; }
-        public string Omschrijving { get; set; }
+        public string Description { get; set; }
         public string Token { get; set; }
-        public string Speler1Token { get; set; }
-        public string Speler2Token { get; set; }
+        public string Player1Token { get; set; }
+        public string Player2Token { get; set; }
 
         private Kleur[,] bord;
         public Kleur[,] Bord
@@ -236,6 +236,11 @@ namespace ReversiRestApi.Model
                 stenenOmgedraaid = true;
             }
             return stenenOmgedraaid;
+        }
+        
+        public bool HasPlayer(string playerToken)
+        {
+            return playerToken.Equals(Player1Token) || playerToken.Equals(Player2Token);
         }
     }
 }

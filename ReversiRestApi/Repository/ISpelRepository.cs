@@ -12,5 +12,11 @@ namespace ReversiRestApi.Repository
         Spel GetSpel(string spelToken);
 
         Spel GetSpelByPlayerToken(string playerToken);
+        
+        bool IsInGame(string playerToken);
+
+        void Save();
+
+        void Delete(string gameToken);
     }
 }

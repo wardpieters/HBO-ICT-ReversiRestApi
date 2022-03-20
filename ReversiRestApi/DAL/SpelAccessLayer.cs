@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ReversiRestApi.Helpers;
 using ReversiRestApi.Model;
 using ReversiRestApi.Repository;
 
@@ -24,12 +25,18 @@ namespace ReversiRestApi.DAL
 
         public Spel GetSpel(string spelToken)
         {
-            return _context.Spellen.First(spel => spel.Token == spelToken);
+            return _context.Spellen.FirstOrDefault(spel => spel.Token == spelToken);
         }
 
-        public void Delete(Spel spel)
+        public void Delete(string gameToken)
         {
-            _context.Spellen.Remove(spel);
+            _context.Spellen.RemoveWhere(x => x.Token == gameToken);
+            Save();
+        }
+
+        public bool IsInGame(string playerToken)
+        {
+            return GetSpelByPlayerToken(playerToken) != null;
         }
 
         public void Save()
@@ -39,7 +46,7 @@ namespace ReversiRestApi.DAL
 
         public Spel GetSpelByPlayerToken(string playerToken)
         {
-            return _context.Spellen.First(spel => spel.Speler1Token == playerToken || spel.Speler2Token == playerToken);
+            return _context.Spellen.FirstOrDefault(spel => spel.Player1Token == playerToken || spel.Player2Token == playerToken);
         }
     }
 }
