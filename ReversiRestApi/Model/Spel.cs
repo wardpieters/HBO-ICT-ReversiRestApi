@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +27,8 @@ namespace ReversiRestApi.Model
         public string Token { get; set; }
         public string Player1Token { get; set; }
         public string Player2Token { get; set; }
-
+        
+        [NotMapped]
         private Kleur[,] bord;
         public Kleur[,] Bord
         {
@@ -53,7 +55,7 @@ namespace ReversiRestApi.Model
             Bord[3, 4] = Kleur.Zwart;
             Bord[4, 3] = Kleur.Zwart;
 
-            AandeBeurt = Kleur.Geen;
+            AandeBeurt = Kleur.Wit;
         }
 
         public void Pas()
@@ -135,6 +137,7 @@ namespace ReversiRestApi.Model
                 {
                     if (ZetMogelijk(rijZet, kolomZet, kleur))
                     {
+                        Console.WriteLine($"x: {rijZet}, y: {kolomZet}, kleur: {kleur}");
                         return true;
                     }
                 }
@@ -148,12 +151,13 @@ namespace ReversiRestApi.Model
             for (int i = 0; i < 8; i++)
             {
                 {
-                    if (StenenInTeSluitenInOpgegevenRichting(rijZet, kolomZet,
-                                                             kleur,
-                                                             richting[i, 0], richting[i, 1]))
+                    if (StenenInTeSluitenInOpgegevenRichting(rijZet, kolomZet, kleur, richting[i, 0], richting[i, 1]))
+                    {
                         return true;
+                    }
                 }
             }
+            
             return false;
         }
 
@@ -161,8 +165,9 @@ namespace ReversiRestApi.Model
         {
             if (AandeBeurt == Kleur.Wit)
                 AandeBeurt = Kleur.Zwart;
-            else
+            else {
                 AandeBeurt = Kleur.Wit;
+            }
         }
 
         private static bool PositieBinnenBordGrenzen(int rij, int kolom)

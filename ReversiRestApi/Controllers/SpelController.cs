@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -85,7 +86,7 @@ namespace ReversiRestApi.Controllers
 
             return Ok(game);
         }
-        
+
         [HttpPut("{token}/leave")]
         public ActionResult<Spel> LeaveGame(string token, [FromBody] string playerToken)
         {
@@ -108,6 +109,44 @@ namespace ReversiRestApi.Controllers
             _spelRepository.Save();
 
             return Ok(spel);
+        }
+
+        [HttpPost("{token}/move")]
+        public ActionResult<Spel> PlaceMove(string token, [FromBody] MoveApi moveInfo)
+        {
+            if (string.IsNullOrEmpty(token)) return BadRequest("Token not provided");
+            var game = _spelRepository.GetSpel(token);
+
+            if (game == null) return NotFound("Game not found");
+            if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest("Invalid player provided");
+
+            game.DoeZet(moveInfo.x, moveInfo.y);
+            string unixTimestamp = Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
+
+            game.Description = unixTimestamp;
+            _spelRepository.Save(game);
+            
+            return Ok(game);
+        }
+
+        [HttpGet("{token}/{playerToken}/skip")]
+        public ActionResult<Spel> PlaceMove(string token, string playerToken)
+        {
+            if (string.IsNullOrEmpty(token)) return BadRequest("Token not provided");
+            var game = _spelRepository.GetSpel(token);
+
+            if (game == null) return NotFound("Game not found");
+            if (string.IsNullOrEmpty(playerToken) || !game.HasPlayer(playerToken)) return BadRequest("Invalid token");
+
+            try
+            {
+                game.Pas();
+                return Ok(game);
+            }
+            catch (Exception e)
+            {
+                return Ok(e.Message);
+            }
         }
     }
 }

@@ -16,6 +16,8 @@ namespace ReversiRestApi.Repository
         bool IsInGame(string playerToken);
 
         void Save();
+        
+        void Save(Spel spel);
 
         void Delete(string gameToken);
     }

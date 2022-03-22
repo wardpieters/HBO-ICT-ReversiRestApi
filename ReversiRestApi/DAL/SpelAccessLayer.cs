@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ReversiRestApi.Helpers;
 using ReversiRestApi.Model;
@@ -41,6 +42,12 @@ namespace ReversiRestApi.DAL
 
         public void Save()
         {
+            _context.SaveChanges();
+        }
+
+        public void Save(Spel spel)
+        {
+            _context.Entry(spel).Property(x => x.Bord).IsModified = true;
             _context.SaveChanges();
         }
 

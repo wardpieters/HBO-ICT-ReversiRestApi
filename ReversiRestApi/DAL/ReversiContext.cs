@@ -17,6 +17,8 @@ namespace ReversiRestApi.DAL
                 .HasConversion(
                     bord => JsonConvert.SerializeObject(bord),
                     bord => JsonConvert.DeserializeObject<Kleur[,]>(bord));
+            
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
