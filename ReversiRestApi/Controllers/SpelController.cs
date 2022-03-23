@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using ReversiRestApi.Hubs;
 using ReversiRestApi.Model;
 using ReversiRestApi.Repository;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ReversiRestApi.Controllers
 {
@@ -14,7 +16,13 @@ namespace ReversiRestApi.Controllers
     public class SpelController : ControllerBase
     {
         private readonly ISpelRepository _spelRepository;
-        public SpelController(ISpelRepository repository) => _spelRepository = repository;
+        private readonly IHubContext<DefaultHub> _theHub;
+
+        public SpelController(ISpelRepository repository, IHubContext<DefaultHub> defaultHub)
+        {
+            _spelRepository = repository;
+            _theHub = defaultHub;
+        }
 
         // GET api/spel
         [HttpGet]
@@ -82,8 +90,21 @@ namespace ReversiRestApi.Controllers
 
             if (!game.HasPlayer(playerToken))
             {
-                game.Player1Token = playerToken;
-                _spelRepository.Save();   
+                if (game.Player1Token == null || game.Player1Token.Equals(playerToken))
+                {
+                    game.Player1Token = playerToken;
+                }
+                
+                else if (game.Player2Token == null || game.Player2Token.Equals(playerToken))
+                {
+                    game.Player2Token = playerToken;    
+                }
+                else
+                {
+                    return BadRequest(new { message = "Game already has two players"});
+                }
+
+                _spelRepository.Save();
             }
 
             return Ok(game);
@@ -121,6 +142,28 @@ namespace ReversiRestApi.Controllers
 
             if (game == null) return NotFound(new { message = "Game not found"});
             if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest(new { message = "Invalid player provided"});
+            
+            if (moveInfo.playerToken.Equals(game.Player1Token))
+            {
+                // player 1 doet zet
+                if (!game.AandeBeurt.Equals(Kleur.Wit))
+                {
+                    return BadRequest(new { message = "wit is niet aan de beurt"});
+                }
+            }
+            else if(moveInfo.playerToken.Equals(game.Player2Token))
+            {
+                // player 2 doet zet
+                if (!game.AandeBeurt.Equals(Kleur.Zwart))
+                {
+                    return BadRequest(new { message = "zwart is niet aan de beurt"});
+                }
+            }
+            else
+            {
+                // Speler die niet in het spel zit doet zet
+                return BadRequest(new { message = "bruh wie ben jij"});
+            }
 
             try
             {
@@ -135,7 +178,9 @@ namespace ReversiRestApi.Controllers
             game.Description = unixTimestamp;
             
             _spelRepository.Save(game);
-            
+
+            _theHub.Clients.All.SendAsync("ReceiveMovementUpdate");
+
             return Ok(game);
         }
 

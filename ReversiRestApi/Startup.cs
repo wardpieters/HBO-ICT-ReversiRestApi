@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using ReversiRestApi.DAL;
 using ReversiRestApi.Repository;
+using ReversiRestApi.Hubs;
 
 namespace ReversiRestApi
 {
@@ -18,7 +19,6 @@ namespace ReversiRestApi
         }
 
         public IConfiguration Configuration { get; }
-        private string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -33,6 +33,8 @@ namespace ReversiRestApi
 
             services.AddTransient<ISpelRepository, SpelAccessLayer>();
             services.AddDbContext<ReversiContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ReversiApi")));
+
+            services.AddSignalR();
 
             services.AddCors();
         }
@@ -62,6 +64,7 @@ namespace ReversiRestApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<DefaultHub>("/api/hub");
             });
         }
     }

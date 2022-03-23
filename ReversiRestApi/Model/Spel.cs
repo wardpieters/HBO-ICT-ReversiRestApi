@@ -27,7 +27,23 @@ namespace ReversiRestApi.Model
         public string Token { get; set; }
         public string Player1Token { get; set; }
         public string Player2Token { get; set; }
+
+        [NotMapped]
+        public bool GameFinished => Afgelopen();
         
+        [NotMapped]
+        public Kleur? GameWinner {
+            get
+            {
+                if(GameFinished)
+                {
+                    return OverwegendeKleur();
+                }
+
+                return null;
+            }
+        }
+
         [NotMapped]
         private Kleur[,] bord;
         public Kleur[,] Bord
@@ -69,8 +85,7 @@ namespace ReversiRestApi.Model
 
 
         public bool Afgelopen() => !IsErEenZetMogelijk(Kleur.Wit) && !IsErEenZetMogelijk(Kleur.Zwart);
-
-
+        
         public Kleur OverwegendeKleur()
         {
             int aantalWit = 0;
