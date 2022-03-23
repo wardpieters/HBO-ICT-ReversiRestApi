@@ -48,7 +48,7 @@ namespace ReversiRestApi.DAL
         public void Save(Spel spel)
         {
             _context.Entry(spel).Property(x => x.Bord).IsModified = true;
-            _context.SaveChanges();
+            Save();
         }
 
         public Spel GetSpelByPlayerToken(string playerToken)

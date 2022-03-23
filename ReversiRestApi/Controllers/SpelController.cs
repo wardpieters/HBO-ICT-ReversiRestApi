@@ -56,6 +56,8 @@ namespace ReversiRestApi.Controllers
         [HttpPost]
         public ActionResult CreateGame([BindRequired, FromBody] GameInfoApi gameInfo)
         {
+            if (_spelRepository.IsInGame(gameInfo.Player1Token)) return BadRequest(new { message = "You're already in an active game."});
+
             Spel spel = new Spel();
             spel.Player1Token = gameInfo.Player1Token;
             spel.Description = gameInfo.Description;
@@ -69,14 +71,14 @@ namespace ReversiRestApi.Controllers
         public ActionResult<Spel> JoinGame(string token, [FromBody] string playerToken)
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(playerToken)) 
-                return BadRequest("Missing fields");
+                return BadRequest(new { message = "Missing fields"});
 
             Spel game = _spelRepository.GetSpel(token);
 
-            if (game == null) return NotFound("Game not found");
+            if (game == null) return NotFound(new { message = "Game not found"});
 
             if (!game.HasPlayer(playerToken) && _spelRepository.IsInGame(playerToken))
-                return BadRequest("Already in game");
+                return BadRequest(new { message = "Already in game"});
 
             if (!game.HasPlayer(playerToken))
             {
@@ -92,14 +94,14 @@ namespace ReversiRestApi.Controllers
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(playerToken))
             {
-                return BadRequest("Fields missing");
+                return BadRequest(new { message = "Missing fields"});
             }
             
             Spel spel = _spelRepository.GetSpel(token);
             
             if (!spel.HasPlayer(playerToken))
             {
-                return BadRequest("Not in game");
+                return BadRequest(new { message = "Not in game"});
             }
 
             if (spel.Player1Token.Equals(playerToken)) 
@@ -114,29 +116,37 @@ namespace ReversiRestApi.Controllers
         [HttpPost("{token}/move")]
         public ActionResult<Spel> PlaceMove(string token, [FromBody] MoveApi moveInfo)
         {
-            if (string.IsNullOrEmpty(token)) return BadRequest("Token not provided");
+            if (string.IsNullOrEmpty(token)) return BadRequest(new { message = "Token not provided."});
             var game = _spelRepository.GetSpel(token);
 
-            if (game == null) return NotFound("Game not found");
-            if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest("Invalid player provided");
+            if (game == null) return NotFound(new { message = "Game not found"});
+            if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest(new { message = "Invalid player provided"});
 
-            game.DoeZet(moveInfo.x, moveInfo.y);
+            try
+            {
+                game.DoeZet(moveInfo.x, moveInfo.y);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message});
+            }
+            
             string unixTimestamp = Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
-
             game.Description = unixTimestamp;
+            
             _spelRepository.Save(game);
             
             return Ok(game);
         }
 
         [HttpGet("{token}/{playerToken}/skip")]
-        public ActionResult<Spel> PlaceMove(string token, string playerToken)
+        public ActionResult<Spel> SkipMove(string token, string playerToken)
         {
-            if (string.IsNullOrEmpty(token)) return BadRequest("Token not provided");
+            if (string.IsNullOrEmpty(token)) return BadRequest(new { message = "Token not provided."});
             var game = _spelRepository.GetSpel(token);
 
-            if (game == null) return NotFound("Game not found");
-            if (string.IsNullOrEmpty(playerToken) || !game.HasPlayer(playerToken)) return BadRequest("Invalid token");
+            if (game == null) return NotFound(new { message = "Game not found"});
+            if (string.IsNullOrEmpty(playerToken) || !game.HasPlayer(playerToken)) return BadRequest(new { message = "Invalid token"});
 
             try
             {
@@ -145,7 +155,7 @@ namespace ReversiRestApi.Controllers
             }
             catch (Exception e)
             {
-                return Ok(e.Message);
+                return BadRequest(new { message = e.Message});
             }
         }
     }
