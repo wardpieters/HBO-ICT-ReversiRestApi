@@ -30,7 +30,7 @@ namespace ReversiRestApi.Controllers
         {
             return _spelRepository.GetSpellen()
                 .Where(s => string.IsNullOrEmpty(s.Player2Token))
-                .Select(s => new {s.Description, s.Token, s.Player1Token, s.Player2Token}).ToList();
+                .Select(s => new {s.Description, s.Token}).ToList();
         }
 
         // GET api/spel
@@ -44,7 +44,7 @@ namespace ReversiRestApi.Controllers
                 return NotFound();
             }
 
-            return Ok(game);
+            return Ok(game.RemoveSensitiveInformation());
         }
 
         // GET api/spel/player-token/
@@ -58,7 +58,7 @@ namespace ReversiRestApi.Controllers
                 return NotFound();
             }
 
-            return Ok(game);
+            return Ok(game.RemoveSensitiveInformation());
         }
 
         [HttpPost]
@@ -72,7 +72,7 @@ namespace ReversiRestApi.Controllers
 
             _spelRepository.AddSpel(spel);
 
-            return Created(spel.Token, spel);
+            return Created(spel.Token, spel.RemoveSensitiveInformation());
         }
         
         [HttpPut("{token}/join")]
@@ -107,7 +107,7 @@ namespace ReversiRestApi.Controllers
                 _spelRepository.Save();
             }
 
-            return Ok(game);
+            return Ok(game.RemoveSensitiveInformation());
         }
 
         [HttpPut("{token}/leave")]
@@ -131,7 +131,7 @@ namespace ReversiRestApi.Controllers
             spel.Player2Token = null;
             _spelRepository.Save();
 
-            return Ok(spel);
+            return Ok(spel.RemoveSensitiveInformation());
         }
 
         [HttpPost("{token}/move")]
@@ -148,7 +148,7 @@ namespace ReversiRestApi.Controllers
                 // player 1 doet zet
                 if (!game.AandeBeurt.Equals(Kleur.Wit))
                 {
-                    return BadRequest(new { message = "wit is niet aan de beurt"});
+                    return BadRequest(new { message = "Jij (wit) bent niet aan de beurt"});
                 }
             }
             else if(moveInfo.playerToken.Equals(game.Player2Token))
@@ -156,13 +156,13 @@ namespace ReversiRestApi.Controllers
                 // player 2 doet zet
                 if (!game.AandeBeurt.Equals(Kleur.Zwart))
                 {
-                    return BadRequest(new { message = "zwart is niet aan de beurt"});
+                    return BadRequest(new { message = "Jij (zwart) bent niet aan de beurt"});
                 }
             }
             else
             {
                 // Speler die niet in het spel zit doet zet
-                return BadRequest(new { message = "bruh wie ben jij"});
+                return BadRequest(new { message = "Unknown user"});
             }
 
             try
@@ -174,14 +174,11 @@ namespace ReversiRestApi.Controllers
                 return BadRequest(new { message = e.Message});
             }
             
-            string unixTimestamp = Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
-            game.Description = unixTimestamp;
-            
             _spelRepository.Save(game);
 
             _theHub.Clients.All.SendAsync("ReceiveMovementUpdate");
 
-            return Ok(game);
+            return Ok(game.RemoveSensitiveInformation());
         }
 
         [HttpGet("{token}/{playerToken}/skip")]
@@ -196,7 +193,9 @@ namespace ReversiRestApi.Controllers
             try
             {
                 game.Pas();
-                return Ok(game);
+                _spelRepository.Save(game);
+                
+                return Ok(game.RemoveSensitiveInformation());
             }
             catch (Exception e)
             {

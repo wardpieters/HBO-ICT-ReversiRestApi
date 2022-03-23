@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ReversiRestApi.Model
 {
+    
     public class Spel : ISpel
     {
         private const int bordOmvang = 8;
@@ -79,8 +80,8 @@ namespace ReversiRestApi.Model
             // controleeer of er geen zet mogelijk is voor de speler die wil passen, alvorens van beurt te wisselen.
             if (IsErEenZetMogelijk(AandeBeurt))
                 throw new Exception("Passen mag niet, er is nog een zet mogelijk");
-            else
-                WisselBeurt();
+            
+            WisselBeurt();
         }
 
 
@@ -261,6 +262,14 @@ namespace ReversiRestApi.Model
         public bool HasPlayer(string playerToken)
         {
             return playerToken.Equals(Player1Token) || playerToken.Equals(Player2Token);
+        }
+
+        public object RemoveSensitiveInformation()
+        {
+            Player1Token = null;
+            Player2Token = null;
+
+            return this;
         }
     }
 }
