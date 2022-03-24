@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ReversiRestApi.Model
 {
@@ -73,8 +69,8 @@ namespace ReversiRestApi.Model
             WisselBeurt();
         }
 
-
         public bool Afgelopen() => !IsErEenZetMogelijk(Kleur.Wit) && !IsErEenZetMogelijk(Kleur.Zwart);
+        public bool IsPlayable() => !String.IsNullOrEmpty(Player1Token) && !String.IsNullOrEmpty(Player2Token);
         
         public Kleur OverwegendeKleur()
         {

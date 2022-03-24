@@ -156,12 +156,10 @@ namespace ReversiRestApi.Controllers
 
             if (game == null) return NotFound(new { message = "Game not found"});
             if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest(new { message = "Invalid player provided"});
-
-            if (game.GameFinished)
-            {
-                return BadRequest(new { message = "Dit spel is afgelopen"});
-            }
-
+            
+            if (game.GameFinished) return BadRequest(new { message = "Dit spel is afgelopen"});
+            if (!game.IsPlayable()) return BadRequest(new { message = "Nodig een andere speler uit om te beginnen! Je bent nu helemaal alleen."});
+            
             if (moveInfo.playerToken.Equals(game.Player1Token))
             {
                 // player 1 doet zet
@@ -216,6 +214,9 @@ namespace ReversiRestApi.Controllers
 
             if (game == null) return NotFound(new { message = "Game not found"});
             if (string.IsNullOrEmpty(playerToken) || !game.HasPlayer(playerToken)) return BadRequest(new { message = "Invalid token"});
+            
+            if (game.GameFinished) return BadRequest(new { message = "Dit spel is afgelopen"});
+            if (!game.IsPlayable()) return BadRequest(new { message = "Nodig een andere speler uit om te beginnen! Je bent nu helemaal alleen."});
 
             try
             {
