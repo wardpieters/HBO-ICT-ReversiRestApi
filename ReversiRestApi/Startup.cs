@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Audit.Core;
+using Audit.WebApi;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,28 @@ namespace ReversiRestApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc(mvc =>
+            {
+                mvc.AddAuditFilter(config => config
+                    .LogAllActions()
+                    .WithEventType("{verb}.{controller}.{action}")
+                    .IncludeHeaders(ctx => !ctx.ModelState.IsValid)
+                    .IncludeRequestBody()
+                    .IncludeModelState()
+                    .IncludeResponseBody(ctx => ctx.HttpContext.Response.StatusCode == 200));
+            });
+            
+            Audit.Core.Configuration.Setup()
+                .UseSqlServer(config => config
+                    .ConnectionString(Configuration.GetConnectionString("ReversiApiAudit"))
+                    .Schema("dbo")
+                    .TableName("Event")
+                    .IdColumnName("EventId")
+                    .JsonColumnName("JsonData")
+                    .LastUpdatedColumnName("LastUpdatedDate")
+                    .CustomColumn("EventType", ev => ev.EventType)
+                    .CustomColumn("User", ev => ev.Environment.UserName));
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
