@@ -61,6 +61,20 @@ namespace ReversiRestApi.Controllers
             return Ok(game.RemoveSensitiveInformation());
         }
 
+        // GET api/spel/player-token/
+        [HttpGet("player-token/{token}/active")]
+        public ActionResult<Spel> GetActiveGameByPlayer(string token)
+        {
+            var game = _spelRepository.GetSpelByPlayerToken(token);
+
+            if (game == null || game.GameFinished)
+            {
+                return NotFound(new { message = "No game with that player token found"});
+            }
+
+            return Ok(game.RemoveSensitiveInformation());
+        }
+
         [HttpPost]
         public ActionResult CreateGame([BindRequired, FromBody] GameInfoApi gameInfo)
         {

@@ -33,7 +33,7 @@ namespace ReversiRestApi
                     .IncludeHeaders(ctx => !ctx.ModelState.IsValid)
                     .IncludeRequestBody()
                     .IncludeModelState()
-                    .IncludeResponseBody(ctx => ctx.HttpContext.Response.StatusCode == 200));
+                );
             });
             
             Audit.Core.Configuration.Setup()
