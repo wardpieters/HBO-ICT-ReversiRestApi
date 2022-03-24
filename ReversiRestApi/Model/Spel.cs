@@ -29,21 +29,10 @@ namespace ReversiRestApi.Model
         public string Player1Token { get; set; }
         public string Player2Token { get; set; }
 
-        [NotMapped]
-        public bool GameFinished => Afgelopen();
+        public bool GameFinished { get; set; }
         
-        [NotMapped]
-        public Kleur? GameWinner {
-            get
-            {
-                if(GameFinished)
-                {
-                    return OverwegendeKleur();
-                }
-
-                return null;
-            }
-        }
+        public Kleur? GameWinner { get; set; }
+        public string GameWinnerPlayerToken { get; set; }
 
         [NotMapped]
         private Kleur[,] bord;
@@ -79,7 +68,7 @@ namespace ReversiRestApi.Model
         {
             // controleeer of er geen zet mogelijk is voor de speler die wil passen, alvorens van beurt te wisselen.
             if (IsErEenZetMogelijk(AandeBeurt))
-                throw new Exception("Passen mag niet, er is nog een zet mogelijk");
+                throw new Exception("Passen mag niet, er is nog een zet mogelijk.");
             
             WisselBeurt();
         }
@@ -111,7 +100,7 @@ namespace ReversiRestApi.Model
         public bool ZetMogelijk(int rijZet, int kolomZet)
         {
             if (!PositieBinnenBordGrenzen(rijZet, kolomZet))
-                throw new Exception($"Zet ({rijZet},{kolomZet}) ligt buiten het bord!");
+                throw new Exception($"Zet ({rijZet}, {kolomZet}) ligt buiten het bord!");
             return ZetMogelijk(rijZet, kolomZet, AandeBeurt);
         }
 
@@ -119,7 +108,7 @@ namespace ReversiRestApi.Model
         {
             if (!ZetMogelijk(rijZet, kolomZet))
             {
-                throw new Exception($"Zet ({rijZet},{kolomZet}) is niet mogelijk!");
+                throw new Exception($"Zet ({rijZet}, {kolomZet}) is niet mogelijk!");
             }
 
             for (var i = 0; i < 8; i++)
@@ -145,7 +134,7 @@ namespace ReversiRestApi.Model
         private bool IsErEenZetMogelijk(Kleur kleur)
         {
             if (kleur == Kleur.Geen)
-                throw new Exception("Kleur mag niet gelijk aan Geen zijn!");
+                throw new Exception("Kleur mag niet gelijk aan 'Geen' zijn!");
             // controleeer of er een zet mogelijk is voor kleur
             for (int rijZet = 0; rijZet < bordOmvang; rijZet++)
             {
@@ -227,9 +216,9 @@ namespace ReversiRestApi.Model
             // Nu kijk je hoe je geeindigt bent met bovenstaande loop. Alleen
             // als alle drie onderstaande condities waar zijn, zijn er in de
             // opgegeven richting stenen in te sluiten.
-            return (PositieBinnenBordGrenzen(rij, kolom) &&
-                    Bord[rij, kolom] == kleurZetter &&
-                    aantalNaastGelegenStenenVanTegenstander > 0);
+            return PositieBinnenBordGrenzen(rij, kolom) &&
+                   Bord[rij, kolom] == kleurZetter &&
+                   aantalNaastGelegenStenenVanTegenstander > 0;
         }
 
         private bool DraaiStenenVanTegenstanderInOpgegevenRichtingOmIndienIngesloten(int rijZet, int kolomZet,
@@ -256,6 +245,7 @@ namespace ReversiRestApi.Model
                 }
                 stenenOmgedraaid = true;
             }
+            
             return stenenOmgedraaid;
         }
         
@@ -268,6 +258,7 @@ namespace ReversiRestApi.Model
         {
             Player1Token = null;
             Player2Token = null;
+            GameWinnerPlayerToken = null;
 
             return this;
         }

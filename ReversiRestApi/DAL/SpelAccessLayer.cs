@@ -39,6 +39,11 @@ namespace ReversiRestApi.DAL
         {
             return GetSpelByPlayerToken(playerToken) != null;
         }
+        
+        public bool IsInActiveGame(string playerToken)
+        {
+            return _context.Spellen.FirstOrDefault(spel => (spel.Player1Token == playerToken || spel.Player2Token == playerToken) && !spel.GameFinished) != null;
+        }
 
         public void Save()
         {

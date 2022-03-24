@@ -14,6 +14,8 @@ namespace ReversiRestApi.Repository
         Spel GetSpelByPlayerToken(string playerToken);
         
         bool IsInGame(string playerToken);
+        
+        bool IsInActiveGame(string playerToken);
 
         void Save();
         

@@ -29,7 +29,7 @@ namespace ReversiRestApi.Controllers
         public ActionResult<IEnumerable<object>> GetSpelDescriptionenVanSpellenMetWachtendeSpeler()
         {
             return _spelRepository.GetSpellen()
-                .Where(s => string.IsNullOrEmpty(s.Player2Token))
+                .Where(s => String.IsNullOrEmpty(s.Player2Token) || String.IsNullOrEmpty(s.Player1Token))
                 .Select(s => new {s.Description, s.Token}).ToList();
         }
 
@@ -64,7 +64,7 @@ namespace ReversiRestApi.Controllers
         [HttpPost]
         public ActionResult CreateGame([BindRequired, FromBody] GameInfoApi gameInfo)
         {
-            if (_spelRepository.IsInGame(gameInfo.Player1Token)) return BadRequest(new { message = "You're already in an active game."});
+            if (_spelRepository.IsInActiveGame(gameInfo.Player1Token)) return BadRequest(new { message = "You're already in an active game."});
 
             Spel spel = new Spel();
             spel.Player1Token = gameInfo.Player1Token;
@@ -85,7 +85,7 @@ namespace ReversiRestApi.Controllers
 
             if (game == null) return NotFound(new { message = "Game not found"});
 
-            if (!game.HasPlayer(playerToken) && _spelRepository.IsInGame(playerToken))
+            if (!game.HasPlayer(playerToken) && _spelRepository.IsInActiveGame(playerToken))
                 return BadRequest(new { message = "Already in game"});
 
             if (!game.HasPlayer(playerToken))
@@ -142,7 +142,12 @@ namespace ReversiRestApi.Controllers
 
             if (game == null) return NotFound(new { message = "Game not found"});
             if (string.IsNullOrEmpty(moveInfo.playerToken) || !game.HasPlayer(moveInfo.playerToken)) return BadRequest(new { message = "Invalid player provided"});
-            
+
+            if (game.GameFinished)
+            {
+                return BadRequest(new { message = "Dit spel is afgelopen"});
+            }
+
             if (moveInfo.playerToken.Equals(game.Player1Token))
             {
                 // player 1 doet zet
@@ -172,6 +177,14 @@ namespace ReversiRestApi.Controllers
             catch (Exception e)
             {
                 return BadRequest(new { message = e.Message});
+            }
+
+            if (game.Afgelopen())
+            {
+                var overwegendeKleur = game.OverwegendeKleur();
+                game.GameWinner = overwegendeKleur;
+                game.GameWinnerPlayerToken = overwegendeKleur == Kleur.Geen ? null : (overwegendeKleur == Kleur.Wit ? game.Player1Token : game.Player2Token);
+                game.GameFinished = true;
             }
             
             _spelRepository.Save(game);
