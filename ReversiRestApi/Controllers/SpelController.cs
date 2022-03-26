@@ -144,6 +144,8 @@ namespace ReversiRestApi.Controllers
 
             spel.Player2Token = null;
             _spelRepository.Save();
+            
+            _theHub.Clients.All.SendAsync("LeavePlayerUpdate", token);
 
             return Ok(spel.RemoveSensitiveInformation());
         }
@@ -201,7 +203,7 @@ namespace ReversiRestApi.Controllers
             
             _spelRepository.Save(game);
 
-            _theHub.Clients.All.SendAsync("ReceiveMovementUpdate");
+            _theHub.Clients.All.SendAsync("ReceiveMovementUpdate", token);
 
             return Ok(game.RemoveSensitiveInformation());
         }
