@@ -114,7 +114,7 @@ namespace ReversiRestApi.Controllers
             if (game == null) return NotFound(new { message = "Game not found"});
 
             if (!game.HasPlayer(playerToken) && _spelRepository.IsInActiveGame(playerToken))
-                return BadRequest(new { message = "Already in game"});
+                return BadRequest(new { message = "You've already joined another game."});
 
             bool playerIsNew = false;
 
