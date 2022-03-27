@@ -24,16 +24,16 @@ namespace ReversiRestApi.Controllers
             _theHub = defaultHub;
         }
 
-        // GET api/spel
+        // GET api/game
         [HttpGet]
-        public ActionResult<IEnumerable<object>> GetSpelDescriptionenVanSpellenMetWachtendeSpeler()
+        public ActionResult<IEnumerable<object>> Get()
         {
             return _spelRepository.GetSpellen()
                 .Where(s => String.IsNullOrEmpty(s.Player2Token) || String.IsNullOrEmpty(s.Player1Token))
                 .Select(s => new {s.Description, s.Token}).ToList();
         }
 
-        // GET api/spel
+        // GET api/game/gameToken
         [HttpGet("{token}")]
         public ActionResult<Spel> GetGame(string token)
         {
@@ -44,10 +44,24 @@ namespace ReversiRestApi.Controllers
                 return NotFound();
             }
 
-            return Ok(game.RemoveSensitiveInformation());
+            return Ok(new GameResponse(game));
+        }
+        
+        // GET api/game/gameToken/playerToken
+        [HttpGet("{gameToken}/{playerToken}")]
+        public ActionResult<Spel> GetGame(string gameToken, string playerToken)
+        {
+            var game = _spelRepository.GetSpel(gameToken);
+
+            if (game == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new GameResponse(game, playerToken));
         }
 
-        // GET api/spel/player-token/
+        // GET api/game/player-token/
         [HttpGet("player-token/{token}")]
         public ActionResult<Spel> GetGameByPlayerToken(string token)
         {
@@ -58,10 +72,10 @@ namespace ReversiRestApi.Controllers
                 return NotFound();
             }
 
-            return Ok(game.RemoveSensitiveInformation());
+            return Ok(new GameResponse(game, token));
         }
 
-        // GET api/spel/player-token/
+        // GET api/game/player-token/
         [HttpGet("player-token/{token}/active")]
         public ActionResult<Spel> GetActiveGameByPlayer(string token)
         {
@@ -72,7 +86,7 @@ namespace ReversiRestApi.Controllers
                 return NotFound(new { message = "No game with that player token found"});
             }
 
-            return Ok(game.RemoveSensitiveInformation());
+            return Ok(new GameResponse(game));
         }
 
         [HttpPost]
@@ -85,8 +99,8 @@ namespace ReversiRestApi.Controllers
             spel.Description = gameInfo.Description;
 
             _spelRepository.AddSpel(spel);
-
-            return Created(spel.Token, spel.RemoveSensitiveInformation());
+            
+            return Created(spel.Token, new GameResponse(spel, gameInfo.Player1Token));
         }
         
         [HttpPut("{token}/join")]
@@ -102,16 +116,20 @@ namespace ReversiRestApi.Controllers
             if (!game.HasPlayer(playerToken) && _spelRepository.IsInActiveGame(playerToken))
                 return BadRequest(new { message = "Already in game"});
 
+            bool playerIsNew = false;
+
             if (!game.HasPlayer(playerToken))
             {
                 if (game.Player1Token == null || game.Player1Token.Equals(playerToken))
                 {
                     game.Player1Token = playerToken;
+                    playerIsNew = true;
                 }
                 
                 else if (game.Player2Token == null || game.Player2Token.Equals(playerToken))
                 {
-                    game.Player2Token = playerToken;    
+                    game.Player2Token = playerToken;
+                    playerIsNew = true;
                 }
                 else
                 {
@@ -121,7 +139,9 @@ namespace ReversiRestApi.Controllers
                 _spelRepository.Save();
             }
 
-            return Ok(game.RemoveSensitiveInformation());
+            if (playerIsNew) _theHub.Clients.All.SendAsync("JoinPlayerUpdate", token);
+            
+            return Ok(new GameResponse(game, playerToken));
         }
 
         [HttpPut("{token}/leave")]
@@ -132,22 +152,28 @@ namespace ReversiRestApi.Controllers
                 return BadRequest(new { message = "Missing fields"});
             }
             
-            Spel spel = _spelRepository.GetSpel(token);
+            Spel game = _spelRepository.GetSpel(token);
             
-            if (!spel.HasPlayer(playerToken))
+            if (!game.HasPlayer(playerToken))
             {
                 return BadRequest(new { message = "Not in game"});
             }
+            
+            if (game.GameFinished) return BadRequest(new { message = "Dit spel is afgelopen"});
 
-            if (spel.Player1Token.Equals(playerToken)) 
-                spel.Player1Token = spel.Player2Token;
-
-            spel.Player2Token = null;
+            if (game.Player1Token.Equals(playerToken))
+            {
+                game.Player1Token = null;
+            } else if (game.Player2Token.Equals(playerToken))
+            {
+                game.Player2Token = null;
+            }
+            
             _spelRepository.Save();
             
             _theHub.Clients.All.SendAsync("LeavePlayerUpdate", token);
 
-            return Ok(spel.RemoveSensitiveInformation());
+            return Ok(new GameResponse(game, playerToken));
         }
 
         [HttpPost("{token}/move")]
@@ -205,7 +231,7 @@ namespace ReversiRestApi.Controllers
 
             _theHub.Clients.All.SendAsync("ReceiveMovementUpdate", token);
 
-            return Ok(game.RemoveSensitiveInformation());
+            return Ok(new GameResponse(game, moveInfo.playerToken));
         }
 
         [HttpGet("{token}/{playerToken}/skip")]
@@ -225,7 +251,7 @@ namespace ReversiRestApi.Controllers
                 game.Pas();
                 _spelRepository.Save(game);
                 
-                return Ok(game.RemoveSensitiveInformation());
+                return Ok(new GameResponse(game, playerToken));
             }
             catch (Exception e)
             {
