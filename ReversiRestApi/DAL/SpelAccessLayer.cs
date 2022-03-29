@@ -42,7 +42,7 @@ namespace ReversiRestApi.DAL
         
         public bool IsInActiveGame(string playerToken)
         {
-            return _context.Spellen.FirstOrDefault(spel => (spel.Player1Token == playerToken || spel.Player2Token == playerToken) && !spel.GameFinished) != null;
+            return GetActiveGamesByPlayerToken(playerToken).Any();
         }
 
         public void Save()
@@ -59,6 +59,15 @@ namespace ReversiRestApi.DAL
         public Spel GetSpelByPlayerToken(string playerToken)
         {
             return _context.Spellen.FirstOrDefault(spel => spel.Player1Token == playerToken || spel.Player2Token == playerToken);
+        }
+
+        public IEnumerable<Spel> GetActiveGamesByPlayerToken(string playerToken)
+        {
+            var joinedGames = _context.Spellen
+                .Where(spel => (spel.Player1Token == playerToken || spel.Player2Token == playerToken) && !spel.GameFinished)
+                .ToList();
+
+            return joinedGames;
         }
     }
 }

@@ -12,6 +12,7 @@ namespace ReversiRestApi.Repository
         Spel GetSpel(string spelToken);
 
         Spel GetSpelByPlayerToken(string playerToken);
+        IEnumerable<Spel> GetActiveGamesByPlayerToken(string playerToken);
         
         bool IsInGame(string playerToken);
         

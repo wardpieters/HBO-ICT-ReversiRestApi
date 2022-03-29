@@ -79,14 +79,15 @@ namespace ReversiRestApi.Controllers
         [HttpGet("player-token/{token}/active")]
         public ActionResult<Spel> GetActiveGameByPlayer(string token)
         {
-            var game = _spelRepository.GetSpelByPlayerToken(token);
+            var games = _spelRepository.GetActiveGamesByPlayerToken(token);
+            var game = games.FirstOrDefault();
 
             if (game == null || game.GameFinished)
             {
                 return NotFound(new { message = "No game with that player token found"});
             }
 
-            return Ok(new GameResponse(game));
+            return Ok(new GameResponse(game, token));
         }
 
         [HttpPost]
