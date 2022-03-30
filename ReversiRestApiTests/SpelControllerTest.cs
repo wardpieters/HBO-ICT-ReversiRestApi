@@ -3,7 +3,7 @@ using System;
 using ReversiRestApi.Model;
 using ReversiRestApi.Controllers;
 
-namespace NUnitTestProjectReversiSpel
+namespace ReversiRestApiTests
 {
     [TestFixture]
     public class SpelControllerTest
@@ -11,7 +11,7 @@ namespace NUnitTestProjectReversiSpel
         [Test]
         public void GetSpelOmschrijvingenVanSpellenMetWachtendeSpeler_Return_Games()
         {
-            SpelController controller = new();
+            SpelController controller = new SpelController(null, null);
         }
     }
 }

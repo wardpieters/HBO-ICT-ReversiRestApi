@@ -36,7 +36,7 @@ namespace ReversiRestApi.Controllers
                 return BadRequest(new {message = "Player token is invalid."});
             }
 
-            // Get all non-finished games
+            // Get all games
             var games = _spelRepository.GetSpellen()
                 .Where(x => x.Player1Token == playerToken || x.Player2Token == playerToken)
                 .ToList();

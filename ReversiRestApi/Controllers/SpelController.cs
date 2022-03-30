@@ -162,16 +162,15 @@ namespace ReversiRestApi.Controllers
             
             if (game.GameFinished) return BadRequest(new { message = "Dit spel is afgelopen"});
 
-            if (game.Player1Token.Equals(playerToken))
+            if (game.Player1Token != null && game.Player1Token.Equals(playerToken))
             {
                 game.Player1Token = null;
-            } else if (game.Player2Token.Equals(playerToken))
+            } else if (game.Player2Token != null && game.Player2Token.Equals(playerToken))
             {
                 game.Player2Token = null;
             }
             
             _spelRepository.Save();
-            
             _theHub.Clients.All.SendAsync("LeavePlayerUpdate", token);
 
             return Ok(new GameResponse(game, playerToken));
