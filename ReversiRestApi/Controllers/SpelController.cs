@@ -245,11 +245,35 @@ namespace ReversiRestApi.Controllers
             
             if (game.GameFinished) return BadRequest(new { message = "Dit spel is afgelopen"});
             if (!game.IsPlayable()) return BadRequest(new { message = "Nodig een andere speler uit om te beginnen! Je bent nu helemaal alleen."});
+            
+            if (playerToken.Equals(game.Player1Token))
+            {
+                // player 1 doet zet
+                if (!game.AandeBeurt.Equals(Kleur.Wit))
+                {
+                    return BadRequest(new { message = "Jij (wit) bent niet aan de beurt"});
+                }
+            }
+            else if(playerToken.Equals(game.Player2Token))
+            {
+                // player 2 doet zet
+                if (!game.AandeBeurt.Equals(Kleur.Zwart))
+                {
+                    return BadRequest(new { message = "Jij (zwart) bent niet aan de beurt"});
+                }
+            }
+            else
+            {
+                // Speler die niet in het spel zit doet zet
+                return BadRequest(new { message = "Unknown user"});
+            }
 
             try
             {
                 game.Pas();
                 _spelRepository.Save(game);
+                
+                _theHub.Clients.All.SendAsync("ReceiveSkipUpdate", token);
                 
                 return Ok(new GameResponse(game, playerToken));
             }
